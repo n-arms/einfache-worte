@@ -1,1 +1,4 @@
-console.log("hello world")
+import {} from "./common.js"
+import { getAuthors } from "./load.js"
+
+getAuthors('q')
