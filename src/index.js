@@ -1,4 +1,4 @@
-import {} from "./common.js"
+import { common, empty, join, showCommon } from "./common.js"
 import { getAuthors, getBooks, pageContents } from "./load.js"
 
 (async () => {
@@ -6,7 +6,14 @@ import { getAuthors, getBooks, pageContents } from "./load.js"
 
     const books = await getBooks(authors[0])
 
-    const contents = await pageContents(books[0])
+    let contents = await pageContents(books[0])
+    let c = empty
 
-    console.log(contents)
+    do {
+        c = join(c, contents.text.map(common).reduce(join, empty))
+
+        contents = await pageContents(contents.next)
+    } while (contents.next)
+
+    console.log(showCommon(c))
 })()
