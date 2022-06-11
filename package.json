@@ -1,0 +1,19 @@
+{
+  "name": "einfache-worte",
+  "version": "1.0.0",
+  "description": "Finds the most common German words using projekt Gutenberg",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/n-arms/einfache-worte.git"
+  },
+  "author": "n-arms",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/n-arms/einfache-worte/issues"
+  },
+  "homepage": "https://github.com/n-arms/einfache-worte#readme"
+}
