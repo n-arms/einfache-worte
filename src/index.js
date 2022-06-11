@@ -1,4 +1,12 @@
 import {} from "./common.js"
-import { getAuthors } from "./load.js"
+import { getAuthors, getBooks, pageContents } from "./load.js"
 
-getAuthors('q')
+(async () => {
+    const authors = await getAuthors('a')
+
+    const books = await getBooks(authors[0])
+
+    const contents = await pageContents(books[0])
+
+    console.log(contents)
+})()
