@@ -40,109 +40,104 @@ const wordFrequency = words => {
     return freq
 }
 
-const common = text => {
+const sentence_break = [
+    '\n', '.', '?', '!', '/'
+]
+
+const filterSentences = text => {
+    const sentences = []
+    let sentence = ""
+
+    Array.from(text).forEach(c => {
+        if (sentence_break.includes(c)) {
+            if (!sentence.includes(",")) {
+                sentences.push(sentence)
+            }
+            sentence = ""
+        } else {
+            sentence += c
+        }
+    })
+
+    if (sentence != "" && !sentence.includes(",")) {
+        sentences.push(sentence)
+    }
+
+    return sentences
+}
+
+const findExamples = (sentences, word) => {
+    let examples = []
+
+    sentences.forEach(sentence => {
+        if (sentence.toLowerCase().includes(word.toLowerCase())) {
+            examples.push(sentence)
+        }
+    })
+
+    return examples
+}
+
+const appendable = (make, append, empty) => {
+    const self = {
+        append,
+        empty,
+        make,
+        concat: list => list.reduce(self.append, self.empty)
+    }
+
+    return self
+}
+
+const wordData = appendable(
+    (frequency, examples) => ({frequency, examples}),
+    ({ frequency: f1, examples: e1 }, { frequency: f2, examples: e2 }) => {
+        const examples = e1.concat(e2)
+        examples.sort((a, b) => 0.5 - Math.random())
+        examples.length = Math.min(examples.length, 5)
+        return wordData.make(f1 + f2, examples)
+    },
+    {frequency: 0, examples: []}
+)
+
+const commonWords = appendable(
+    (words, length) => ({words, length}),
+    ({ words: w1, length: l1}, { words: w2, length: l2 }) => {
+        let newWords = { ... w1 }
+
+        Object.entries(w2).forEach(([word, data]) => {
+            if (newWords[word]) {
+                newWords[word] = wordData.append(newWords[word], data)
+            } else {
+                newWords[word] = data
+            }
+        })
+
+        return commonWords.make(newWords, l1 + l2)
+    },
+    {words: {}, length: 0}
+)
+
+const analyzeParagraph = text => {
     const words = filterWords(text)
     const freq = wordFrequency(words)
+    const sentences = filterSentences(text)
 
-    return makeCommon(freq, words.length)
+    const data = Object.fromEntries(
+        Object.entries(freq)
+        .map(([word, freq]) => {
+            const examples = findExamples(sentences, word)
+            if (word == "sein") {
+                console.log("examples of", word, "\n", examples, "\n")
+            }
+            return [
+                word,
+                wordData.make(freq, examples)
+            ]
+        })
+    )
+
+    return commonWords.make(data, words.length)
 }
 
-const join = (c1, c2) => {
-    const newWords = {... c1.words}
-
-    Object.entries(c2.words).forEach(([word, freq]) => {
-        if (newWords[word]) {
-            newWords[word] += freq
-        } else {
-            newWords[word] = freq
-        }
-    })
-
-    return makeCommon(newWords, c1.length + c2.length)
-}
-
-const makeCommon = (words, length) => {
-    return {
-        words,
-        length
-    }
-}
-
-const empty = makeCommon({}, 0)
-
-const showCommon = c => {
-    let str = ""
-    let leftover = 0
-
-    let arr = Object.entries(c.words)
-
-    arr = arr.sort(([_, a_freq], [__, b_freq]) => a_freq - b_freq)
-
-    arr.forEach(([word, freq]) => {
-        if (freq <= 1) {
-            ++ leftover
-        } else {
-            str += word
-            str += ": "
-            str += freq.toString()
-            str += "\n"
-        }
-    })
-
-    str += "and "
-    str += leftover.toString()
-    str += " rare words that occur only once"
-
-    return str
-}
-
-const topN = (number, c) => {
-    let arr = Object.entries(c.words)
-
-    arr = arr.sort(([_, a_freq], [__, b_freq]) => b_freq - a_freq)
-    arr.length = Math.min(number, arr.length)
-
-    const header = "=".repeat(180)
-
-    let str = ""
-    let col = 0
-
-    str += header
-    str += "\nprocessed "
-    str += c.length.toString()
-    str += " total words\n"
-    str += header
-    str += "\n"
-    arr.forEach(([word, _]) => {
-        str += word
-        if (col == 5) {
-            col = 0
-            str += "\n"
-        } else {
-            str += " ".repeat(30 - word.length)
-            ++ col
-        }
-    })
-
-    if (col) {
-        str += "\n"
-    }
-
-    str += header
-    str += "\n\n"
-
-    return str
-}
-
-const toCSV = c => {
-    let arr = Object.entries(c.words)
-
-    arr = arr.sort(([_, a_freq], [__, b_freq]) => b_freq - a_freq)
-    arr.length = Math.min(200, arr.length)
-
-    const csv = arr.map(([word, freq]) => `${word},${freq.toString()}\n`).reduce((a, b) => a + b, "")
-
-    return csv
-}
-
-export { common, empty, join, showCommon, topN, toCSV }
+export { wordData, commonWords, analyzeParagraph }

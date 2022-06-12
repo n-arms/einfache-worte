@@ -1,11 +1,13 @@
-import { common, empty, join, showCommon, topN, toCSV } from "./common.js"
+import { commonWords, analyzeParagraph } from "./common.js"
+import { asTable, asCSV } from "./pretty.js"
 import { getAuthors, getBooks, pageContents } from "./load.js"
-import { appendFileSync } from 'node:fs'
+import { appendFileSync, rmSync } from 'node:fs'
+
 
 (async () => {
     const authors = await getAuthors('a')
 
-    let c = empty
+    let c = commonWords.empty
 
     for (const author of authors) {
         console.log("processing author", author)
@@ -13,15 +15,23 @@ import { appendFileSync } from 'node:fs'
 
         for (const book of books) {
             let contents = await pageContents(book)
+            let bookText = contents.text
 
             while (contents.next) {
-                c = join(c, contents.text.map(t => t ? common(t) : empty).reduce(join, empty))
+                const page = commonWords.concat(contents.text.map(t => t ? analyzeParagraph(t) : empty))
+                c = commonWords.append(c, page)
 
                 contents = await pageContents(contents.next)
+                bookText = bookText.concat(contents.text)
             }
 
-            appendFileSync("log.csv", toCSV(c))
-            console.log(topN(100, c))
+            rmSync("log.csv", {force: true})
+            appendFileSync("log.csv", asCSV(c))
+            
+            rmSync("book.txt", {force: true})
+            appendFileSync("book.txt", bookText.join("\n\n"))
+
+            console.log(asTable(100, c))
             return
         }
     }
