@@ -95,4 +95,38 @@ const showCommon = c => {
     return str
 }
 
-export { common, empty, join, showCommon }
+const top100 = c => {
+    let arr = Object.entries(c.words)
+
+    arr = arr.sort(([_, a_freq], [__, b_freq]) => b_freq - a_freq)
+    arr.length = Math.min(100, arr.length)
+
+    const header = "=".repeat(180)
+
+    let str = ""
+    let col = 0
+
+    str += header
+    str += "\n"
+
+    arr.forEach(([word, _]) => {
+        str += word
+        if (col == 5) {
+            col = 0
+            str += "\n"
+        } else {
+            str += " ".repeat(30 - word.length)
+            ++ col
+        }
+    })
+
+    if (col) {
+        str += "\n"
+    }
+
+    str += header
+
+    return str
+}
+
+export { common, empty, join, showCommon, top100 }

@@ -1,4 +1,4 @@
-import { common, empty, join, showCommon } from "./common.js"
+import { common, empty, join, showCommon, top100 } from "./common.js"
 import { getAuthors, getBooks, pageContents } from "./load.js"
 
 (async () => {
@@ -15,5 +15,5 @@ import { getAuthors, getBooks, pageContents } from "./load.js"
         contents = await pageContents(contents.next)
     } while (contents.next)
 
-    console.log(showCommon(c))
+    console.log(top100(c))
 })()
