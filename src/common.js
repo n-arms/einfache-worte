@@ -44,7 +44,7 @@ const common = text => {
     const words = filterWords(text)
     const freq = wordFrequency(words)
 
-    return makeCommon(freq)
+    return makeCommon(freq, words.length)
 }
 
 const join = (c1, c2) => {
@@ -58,16 +58,17 @@ const join = (c1, c2) => {
         }
     })
 
-    return makeCommon(newWords)
+    return makeCommon(newWords, c1.length + c2.length)
 }
 
-const makeCommon = words => {
+const makeCommon = (words, length) => {
     return {
-        words
+        words,
+        length
     }
 }
 
-const empty = makeCommon({})
+const empty = makeCommon({}, 0)
 
 const showCommon = c => {
     let str = ""
@@ -95,11 +96,11 @@ const showCommon = c => {
     return str
 }
 
-const top100 = c => {
+const topN = (number, c) => {
     let arr = Object.entries(c.words)
 
     arr = arr.sort(([_, a_freq], [__, b_freq]) => b_freq - a_freq)
-    arr.length = Math.min(100, arr.length)
+    arr.length = Math.min(number, arr.length)
 
     const header = "=".repeat(180)
 
@@ -107,8 +108,11 @@ const top100 = c => {
     let col = 0
 
     str += header
+    str += "\nprocessed "
+    str += c.length.toString()
+    str += " total words\n"
+    str += header
     str += "\n"
-
     arr.forEach(([word, _]) => {
         str += word
         if (col == 5) {
@@ -125,8 +129,20 @@ const top100 = c => {
     }
 
     str += header
+    str += "\n\n"
 
     return str
 }
 
-export { common, empty, join, showCommon, top100 }
+const toCSV = c => {
+    let arr = Object.entries(c.words)
+
+    arr = arr.sort(([_, a_freq], [__, b_freq]) => b_freq - a_freq)
+    arr.length = Math.min(200, arr.length)
+
+    const csv = arr.map(([word, freq]) => `${word},${freq.toString()}\n`).reduce((a, b) => a + b, "")
+
+    return csv
+}
+
+export { common, empty, join, showCommon, topN, toCSV }
